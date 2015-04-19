@@ -1,0 +1,87 @@
+<?xml version="1.0" standalone="yes"?>
+<!--
+  Copyright 2004 Sun Microsystems, Inc. All rights reserved.
+-->
+<project name="jaxws.webservices" default="main" basedir="../">
+	<property environment="env" />
+	<property name="webclient" value="JaxWS-wsimport" />
+	<property name="src" value="${basedir}/src/" />
+	<property name="resources" value="${basedir}/resources/" />
+	<property name="classes" value="${basedir}/classes/" />
+	<property name="jars" value="${basedir}/jars/" />
+	<property name="wsdl-resources" value="${basedir}/wsdl" />
+
+	<property name="package" value="com.cdyne.ws.weatherws" />
+	<property name="wsdl" value="Weather.wsdl" />
+
+	<property name="wsimport-cmd" value="C:\Program Files\Java\jdk1.7.0_75\bin\wsimport" />
+
+	<echo message="calling the web services generation task wsgen" />
+	<target name="main">
+		<antcall target="clean-all"/>
+		<exec executable="${wsimport-cmd}">
+			<arg value="${wsdl-resources}/${wsdl}" />
+			<arg value="-s" />
+			<arg value="${src}" />
+			<arg value="-d" />
+			<arg value="${classes}" />
+			<arg value="-keep" />
+			<arg value="-p" />
+			<arg value="${package}" />
+		</exec>
+		<antcall target="eclipse-refresh" />
+		<antcall target="build-jar" />
+
+	</target>
+
+	<target name="clean-classes" description="Cleans all java classes in all java modules">
+		<echo message="Deleting scrap classes files" />
+		<delete quiet="false" includeEmptyDirs="true">
+			<fileset dir="${classes}" includes="**" />
+		</delete>
+		<mkdir dir="${classes}"/>
+	</target>
+	
+	<target name="clean-src" description="Cleans all java classes in all java modules">
+		<echo message="Deleting scrap files from src" />
+		<delete quiet="false" includeEmptyDirs="true">
+			<fileset dir="${src}" includes="**" />
+			<fileset dir="${resources}" includes="**" />
+		</delete>
+		<mkdir dir="${src}"/>
+		<mkdir dir="${resources}"/>
+	</target>
+
+	<target name="clean-all" description="Cleans all java classes in all java modules">
+		<echo message="Deleting scrap files" />
+		<antcall target="clean-src" />
+		<antcall target="clean-classes" />
+		<antcall target="eclipse-refresh" />
+	</target>
+
+	<target name="eclipse-refresh" if="eclipse.running" description="Refreshes Eclipse project when run inside the Eclipse workspace JRE">
+		<echo message="Refreshing eclipse..." />
+		<eclipse.refreshLocal resource="${basedir}" depth="infinite" />
+	</target>
+
+	<target name="build-jar">
+		<echo message="Ant: ${ant.version}" />
+		<echo message="Java: ${ant.java.version}" />
+		<echo message="JRE Name: ${java.runtime.name}" />
+		<echo message="JRE Version: ${java.runtime.version}" />
+		<echo message="Java Version: ${java.version}" />
+
+		<antcall target="eclipse-refresh" />
+		<jar destfile="${jars}/WeatherServiceJaxWS.jar">
+			<fileset dir="${classes}" />
+			<fileset dir="${src}" />
+			<fileset dir="${resources}" />
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0" />
+				<attribute name="Created-By" value="${java.runtime.version}" />
+				<attribute name="Ant-Version" value="${ant.version}" />
+				<attribute name="WebServiceClient" value="${webclient}" />
+			</manifest>
+		</jar>
+	</target>
+</project>
